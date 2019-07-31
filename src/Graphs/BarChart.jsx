@@ -199,7 +199,7 @@ class BarChart extends Component {
               </YTitleContainer>
               <Scale
                 ref={this.yAxisContEl}
-                left={-this.getYContainerWidth() / 2 - 10}
+                left={-this.getYContainerWidth() / 2 - 20}
                 height={this.getChartHeight()}
               >
                 <ScaleItem>{this.props.maxScaleValue}</ScaleItem>

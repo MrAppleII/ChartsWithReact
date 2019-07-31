@@ -29,8 +29,15 @@ class LineGraph extends Component {
     }
   }
 
-  componentWillUnmount() {}
+  /*
+      setInitialValue()
+      Parameters: none.
+      This generates the scale to be used. If we are not given, 
+      nothing is done about it and an error will occur. It handles the case that the 
+      scales are reserved or one is missing in a crude manner. It also typechecks and 
+      set the labels. 
 
+  */
   setInitialValues = () => {
     // First lets sets our X axis
     if (
@@ -60,17 +67,17 @@ class LineGraph extends Component {
       FinalXMax = this.props.maxYScaleValue
     }
     // Now lets move on to the title for the chart
-    var yTitle = ``
-    var xTitle = ``
+    var yTitle = ""
+    var xTitle = ""
     if (
-      typeof this.props.yAxisTitle !== "undefined" &&
       typeof this.props.yAxisTitle === "string"
     ) {
       // We have a valid title
+
       yTitle = this.props.yAxisTitle
     }
     if (
-      typeof this.props.xAxisTitle !== "undefined" &&
+     
       typeof this.props.xAxisTitle === "string"
     ) {
       xTitle = this.props.xAxisTitle
@@ -87,31 +94,76 @@ class LineGraph extends Component {
       }
     )
   }
+  /*
+    generateColor()
+    Parameter: colorIndex(number)
 
+    Returns a number from a list. If we run out of colors to pick,
+    we will automatically generate one. If the list given is invalid 
+    in a detectable manner, we will also randomly generate one. 
+
+  */
+  generateColor = (colorIndex) => {
+    var maxRGBVal = 255
+    var r = this.getRandomInt(maxRGBVal)
+    var g = this.getRandomInt(maxRGBVal)
+    var b = this.getRandomInt(maxRGBVal)
+    var rgbColor = "rgb(" + r + "," + g + "," + b + ")"
+    try{
+    if( Array.isArray(this.props.graphColors) !== true){
+      // were given a proper array.
+      return rgbColor 
+    }else{
+      // here is the usual case actually 
+      if(this.props.graphColors.length-1<colorIndex)
+      {
+        //We are out of colors, so generate a random one 
+        return rgbColor
+      }
+      else{
+        return this.props.graphColors[colorIndex]
+      }
+      
+    }
+    }catch(e){
+      return rgbColor
+    }
+  }
+  getRandomInt = max => {
+    return Math.floor(Math.random() * Math.floor(max))
+  }
+  /*
+    drawData()
+    Parameter:chartData(Object)
+    This function generates the points to be displayed,
+    calls another function to generate the background gridlines,
+    calls another function to generate the labels and scale. 
+  */
   drawData(chartData) {
-    //Done setting scales
+   
 
     var labels = chartData.labels
-    var values = chartData.values
-    //console.log("Values,", chartData)
     var ChartWidth = this.chartEl.current.getBoundingClientRect().width
     var ChartHeight = this.chartEl.current.getBoundingClientRect().height
+    const sPts = chartData.values.map((dataSet,index)=>{
+        return (
+          <polyline
+          key={this.getRandomInt(400)}
+          fill="none"
+          stroke={this.generateColor(index)}
+          strokeWidth="3"
+          points={this.generatePoints(
+            ChartWidth,
+            ChartHeight,
+            dataSet,
+            this.state.maxXScale,
+            this.state.minXScale
+          )}
+        />
+        )
 
-    //console.log("ChartW", ChartWidth)
-    var sPts = (
-      <polyline
-        fill="none"
-        stroke={this.props.LineColor}
-        strokeWidth="3"
-        points={this.generatePoints(
-          ChartWidth,
-          ChartHeight,
-          values,
-          this.state.maxXScale,
-          this.state.minXScale
-        )}
-      />
-    )
+    })
+   
     var backG = this.generateGridLines(ChartWidth, ChartHeight)
 
     this.setState(
@@ -132,33 +184,49 @@ class LineGraph extends Component {
       }
     )
   }
+  /*
+      generateXLabels()
+      Parameters: labels(array of strings),xCoor(array of numbers),height(number)
+      Creates a set of objects to be displayed on the X axis and sets them to state. This is usually 
+      the name of the data points. I could have put in the render function but this causes
+      a lot of extra rerenders. 
+  */
   generateXLabels = (labels, xCoor, height) => {
-    //console.log("Xcoor", xCoor)
     const XLabels = labels.map((name, index) => {
-      return (
+      if(name!==""){
+        return (
+          <>
+            <XLabel
+              key={this.getRandomInt(400)}
+              x={xCoor[index]}
+              y={height}
+            >
+              {name}
+            </XLabel>
+          </>
+        )
+      }else return(
         <>
-          <XLabel
-            key={Math.floor(Math.random() * 999)}
-            x={xCoor[index]}
-            y={height}
-          >
-            {name}
-          </XLabel>
         </>
       )
+      
     })
 
     this.setState({
       XLabels: XLabels,
     })
   }
+  /*
+    generateYLabels()
+    parameters: min(number), max(number), height(number)
+
+
+  */
   generateYLabels = (min, max, height) => {
-    //console.log("Max", max)
     var midpoint = (min + max) / 2
     var LabelNames = [max, midpoint, min]
     let xHeight = [0, height / 2, height]
     let yTitleWidth = this.yAxisEl.current.getBoundingClientRect().width
-    //console.log("Labels", LabelNames)
     const LabelNamesTexts = LabelNames.map((name, index) => {
       return (
         <>
@@ -258,7 +326,7 @@ class LineGraph extends Component {
           <RowContainer>
             <svg
               width={this.state.YLabelWidth}
-              style={{ right: 0, overflow: "visible" }}
+              style={{ left: -20, overflow: "visible",position:"absolute" }}
               height={this.state.chartHeight}
             >
               <g>
@@ -266,8 +334,8 @@ class LineGraph extends Component {
                 <YTitle
                   ref={this.yAxisEl}
                   x={
-                    -this.state.yAxisTitleWidth / 2 -
-                    this.state.YLabelWidth / 2 -
+                   ( -this.state.yAxisTitleWidth / 2) -
+                    (this.state.YLabelWidth / 2) -
                     15
                   }
                   y={this.state.chartHeight / 2}
