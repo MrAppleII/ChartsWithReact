@@ -52,3 +52,31 @@ Here is you create a line graph. The same rules apply regarding the autogenerate
 
 
 ```
+
+# Handling multiple data arrays
+If you select line graph to display, you can pass in multiple arrays in the fashion 
+
+{
+    labels:["my Labels","Here is another"],
+    values: [[25, 10, 30, 2.50,2.50,30],[4,32,78,20,60,32]]
+
+}
+
+# Setting the colors for Line and Pie Charts.
+
+```
+    var colors = ["#32a852","#9da19e","#267eb5","#FFB6C1","#f2bc27","#ff0fb7"]
+< GraphGen 
+         xAxisTitle="Month"
+         yAxisTitle="Payments"
+         graphColors = {colors}
+        size={205}
+        fadeIn={true}
+         chartType="pie"
+        chartData = {ourData} style={{marginTop:"20px",marginBottom:"30px"}}  />
+
+```
+
+# Fade in prop
+
+If this is set to true, the chart will fade into view after loading.
